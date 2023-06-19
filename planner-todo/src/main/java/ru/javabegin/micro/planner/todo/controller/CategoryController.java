@@ -60,6 +60,7 @@ public class CategoryController {
         if(userWebClientBuilder.userExists(category.getUserId())){
             return ResponseEntity.ok(categoryService.add(category));
         }
+        //userWebClientBuilder.userExistsAsync(category.getUserId()).subscribe(user -> System.out.println("user = " + user)); для демонстрации асинхронного вызова
         //если пользователя не существует
         return new ResponseEntity("user id = " + category.getUserId() + " not found ", HttpStatus.NOT_ACCEPTABLE);
     }

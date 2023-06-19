@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.User;
 import ru.javabegin.micro.planner.users.search.UserSearchValues;
 import ru.javabegin.micro.planner.users.service.UserService;
+import ru.javabegin.micro.planner.utils.webclient.UserWebClientBuilder;
 
 import java.text.ParseException;
 import java.util.NoSuchElementException;
@@ -36,12 +37,14 @@ public class UserController {
 
     public static final String ID_COLUMN = "id"; // имя столбца id
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
+    private UserWebClientBuilder userWebClientBuilder;
 
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserWebClientBuilder userWebClientBuilder) {
         this.userService = userService;
+        this.userWebClientBuilder = userWebClientBuilder;
     }
 
 
@@ -67,8 +70,18 @@ public class UserController {
         if (user.getUsername() == null || user.getUsername().trim().length() == 0) {
             return new ResponseEntity("missed param: username", HttpStatus.NOT_ACCEPTABLE);
         }
+        //добавлям пользователя
+        user = userService.add(user);
 
-        return ResponseEntity.ok(userService.add(user)); // возвращаем созданный объект со сгенерированным id
+        if (user != null) {
+            userWebClientBuilder.initUserData(user.getId()).subscribe(result -> {
+                        System.out.println("user populated: " + result);
+                    }
+            );
+        }
+
+
+        return ResponseEntity.ok(user); // возвращаем созданный объект со сгенерированным id
 
     }
 
@@ -144,7 +157,7 @@ public class UserController {
         // можно обойтись и без try-catch, тогда будет возвращаться полная ошибка (stacktrace)
         // здесь показан пример, как можно обрабатывать исключение и отправлять свой текст/статус
         try {
-            if(userOptional.isPresent()){ //если объект найден
+            if (userOptional.isPresent()) { //если объект найден
                 return ResponseEntity.ok(userOptional.get());
             }
         } catch (NoSuchElementException e) { // если объект не будет найден
@@ -171,7 +184,6 @@ public class UserController {
 
         return ResponseEntity.ok(user);
     }
-
 
 
     // поиск по любым параметрам UserSearchValues
