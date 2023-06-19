@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.Priority;
 import ru.javabegin.micro.planner.todo.search.PrioritySearchValues;
 import ru.javabegin.micro.planner.todo.service.PriorityService;
+import ru.javabegin.micro.planner.utils.webclient.UserWebClientBuilder;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -33,11 +34,12 @@ public class PriorityController {
 
     // доступ к данным из БД
     private PriorityService priorityService;
-
+    private UserWebClientBuilder userWebClientBuilder;
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public PriorityController(PriorityService priorityService) {
+    public PriorityController(PriorityService priorityService, UserWebClientBuilder userWebClientBuilder) {
         this.priorityService = priorityService;
+        this.userWebClientBuilder=userWebClientBuilder;
     }
 
 
@@ -65,9 +67,13 @@ public class PriorityController {
         if (priority.getColor() == null || priority.getColor().trim().length() == 0) {
             return new ResponseEntity("missed param: color", HttpStatus.NOT_ACCEPTABLE);
         }
+        //если такой пользователь существует
+        if(userWebClientBuilder.userExists(priority.getUserId())){
+            return ResponseEntity.ok(priorityService.add(priority));
+        }
+        //если пользователя не существует
+        return new ResponseEntity("user id = " + priority.getUserId() + " not found ", HttpStatus.NOT_ACCEPTABLE);
 
-        // save работает как на добавление, так и на обновление
-        return ResponseEntity.ok(priorityService.add(priority));
     }
 
 

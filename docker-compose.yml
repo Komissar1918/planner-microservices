@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: postgres_microservices
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: Komissar1918
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres_planner
+    ports:
+      - "5432"
+      - "5432/tcp"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+
+
+#после запуска контейнера нужно ввести команду в терминале контейнера: createdb -U Komissar1918 <название бд>

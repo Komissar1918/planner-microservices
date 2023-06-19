@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.Category;
 import ru.javabegin.micro.planner.todo.search.CategorySearchValues;
 import ru.javabegin.micro.planner.todo.service.CategoryService;
+import ru.javabegin.micro.planner.utils.webclient.UserWebClientBuilder;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -27,11 +28,13 @@ public class CategoryController {
 
     // доступ к данным из БД
     private CategoryService categoryService;
+    private UserWebClientBuilder userWebClientBuilder;
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(CategoryService categoryService, UserWebClientBuilder userWebClientBuilder) {
         this.categoryService = categoryService;
+        this.userWebClientBuilder=userWebClientBuilder;
     }
 
     @PostMapping("/all")
@@ -53,8 +56,12 @@ public class CategoryController {
         if (category.getTitle() == null || category.getTitle().trim().length() == 0) {
             return new ResponseEntity("missed param: title MUST be not null", HttpStatus.NOT_ACCEPTABLE);
         }
-
-        return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
+        //если такой пользователь существует
+        if(userWebClientBuilder.userExists(category.getUserId())){
+            return ResponseEntity.ok(categoryService.add(category));
+        }
+        //если пользователя не существует
+        return new ResponseEntity("user id = " + category.getUserId() + " not found ", HttpStatus.NOT_ACCEPTABLE);
     }
 
 
