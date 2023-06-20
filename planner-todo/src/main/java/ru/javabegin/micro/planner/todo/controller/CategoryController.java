@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.Category;
+import ru.javabegin.micro.planner.todo.feign.UserFeignClient;
 import ru.javabegin.micro.planner.todo.search.CategorySearchValues;
 import ru.javabegin.micro.planner.todo.service.CategoryService;
 import ru.javabegin.micro.planner.utils.webclient.UserWebClientBuilder;
@@ -30,11 +31,15 @@ public class CategoryController {
     private CategoryService categoryService;
     private UserWebClientBuilder userWebClientBuilder;
 
+    //клиент для вызова микросервисов
+    private UserFeignClient userFeignClient;
+
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public CategoryController(CategoryService categoryService, UserWebClientBuilder userWebClientBuilder) {
+    public CategoryController(CategoryService categoryService, UserWebClientBuilder userWebClientBuilder, UserFeignClient userFeignClient) {
         this.categoryService = categoryService;
-        this.userWebClientBuilder=userWebClientBuilder;
+        this.userWebClientBuilder = userWebClientBuilder;
+        this.userFeignClient=userFeignClient;
     }
 
     @PostMapping("/all")
@@ -57,14 +62,13 @@ public class CategoryController {
             return new ResponseEntity("missed param: title MUST be not null", HttpStatus.NOT_ACCEPTABLE);
         }
         //если такой пользователь существует
-        if(userWebClientBuilder.userExists(category.getUserId())){
+        //вызов микросервиса через feign интерфейс
+        if(userFeignClient.findUserById(category.getUserId()) !=null){
             return ResponseEntity.ok(categoryService.add(category));
         }
-        //userWebClientBuilder.userExistsAsync(category.getUserId()).subscribe(user -> System.out.println("user = " + user)); для демонстрации асинхронного вызова
         //если пользователя не существует
         return new ResponseEntity("user id = " + category.getUserId() + " not found ", HttpStatus.NOT_ACCEPTABLE);
     }
-
 
 
     @PutMapping("/update")
@@ -85,7 +89,6 @@ public class CategoryController {
 
         return new ResponseEntity(HttpStatus.OK); // просто отправляем статус 200 (операция прошла успешно)
     }
-
 
 
     // для удаления используем тип запроса DELETE и передаем ID для удаления
