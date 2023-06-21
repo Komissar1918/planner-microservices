@@ -77,7 +77,9 @@ public class UserController {
         //добавлям пользователя
         user = userService.add(user);
         //отправляем сообщение
-        messageFuncActions.sendNewUserMessage(user.getId());
+        if(user !=null){
+            messageFuncActions.sendNewUserMessage(user.getId());
+        }
 
         return ResponseEntity.ok(user); // возвращаем созданный объект со сгенерированным id
 

@@ -20,6 +20,5 @@ public class MessageFuncActions { //помогает реалтзовать от
         //добавляем в слушатель новое сообщение
         messageFunc.getInnerBus().emitNext(MessageBuilder.withPayload(id).build(), Sinks.EmitFailureHandler.FAIL_FAST);
         System.out.println("Сообщение доставлено для id user: " + id);
-
     }
 }

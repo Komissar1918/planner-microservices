@@ -19,6 +19,7 @@ public class MessageFunc {
     //название метода должно совпадать с настройками definition и bindings в файлах properties
     @Bean
     public Consumer<Message<Long>> newUserActionConsumer() {
+        System.out.println("Принял сообщение и вызвал метод");
         return message -> testDataService.initTestData(message.getPayload());
     }
 }
