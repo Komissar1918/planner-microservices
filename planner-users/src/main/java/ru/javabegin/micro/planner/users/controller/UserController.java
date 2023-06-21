@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.User;
+import ru.javabegin.micro.planner.users.mq.MessageProducer;
 import ru.javabegin.micro.planner.users.search.UserSearchValues;
 import ru.javabegin.micro.planner.users.service.UserService;
 import ru.javabegin.micro.planner.utils.webclient.UserWebClientBuilder;
@@ -38,13 +39,15 @@ public class UserController {
     public static final String ID_COLUMN = "id"; // имя столбца id
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
     private UserWebClientBuilder userWebClientBuilder;
+    private MessageProducer messageProducer; //утилита для отправки сообщений
 
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public UserController(UserService userService, UserWebClientBuilder userWebClientBuilder) {
+    public UserController(UserService userService, UserWebClientBuilder userWebClientBuilder, MessageProducer messageProducer) {
         this.userService = userService;
         this.userWebClientBuilder = userWebClientBuilder;
+        this.messageProducer = messageProducer;
     }
 
 
@@ -73,11 +76,14 @@ public class UserController {
         //добавлям пользователя
         user = userService.add(user);
 
-        if (user != null) {
-            userWebClientBuilder.initUserData(user.getId()).subscribe(result -> {
-                        System.out.println("user populated: " + result);
-                    }
-            );
+//        if (user != null) {
+//            userWebClientBuilder.initUserData(user.getId()).subscribe(result -> {
+//                        System.out.println("user populated: " + result);
+//                    }
+//            );
+//        }
+        if (user !=null){ //если пользователь добавился
+            messageProducer.newUserAction(user.getId());
         }
 
 
