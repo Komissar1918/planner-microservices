@@ -1,5 +1,6 @@
 package ru.javabegin.micro.planner.todo.service;
 
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import ru.javabegin.micro.planner.entity.Category;
 import ru.javabegin.micro.planner.entity.Priority;
@@ -21,7 +22,14 @@ public class TestDataService {
         this.priorityService = priorityService;
     }
 
-    public void initTestData(Long userId){
+    @KafkaListener(topics = "test_topic")
+    public void listenerKafka(Long userId) {
+        System.out.println("Cообщение принято: " + userId);
+        initTestData(userId);
+
+    }
+
+    public void initTestData(Long userId) {
         Priority priority1 = new Priority();
         priority1.setColor("#fff");
         priority1.setTitle("Высокий");
@@ -50,14 +58,14 @@ public class TestDataService {
         Date tomorrow = new Date();
         Calendar c = Calendar.getInstance();
         c.setTime(tomorrow);
-        c.add(Calendar.DATE,1);
+        c.add(Calendar.DATE, 1);
         tomorrow = c.getTime();
 
         //неделя
         Date oneWeek = new Date();
         Calendar c2 = Calendar.getInstance();
         c2.setTime(oneWeek);
-        c2.add(Calendar.DATE,7);
+        c2.add(Calendar.DATE, 7);
         oneWeek = c2.getTime();
 
         Task task1 = new Task();
